@@ -84,6 +84,52 @@ my_playwright_py_framework/
 
 ## ✨ Key Capabilities
 
+### Pytest Fixtures
+
+Leverage `pytest` fixtures in `fixtures/conftest.py` to share setup across tests:
+
+By default, `pytest-playwright` provides `browser`, `context`, and `page` fixtures. However, you can customize your own setup, for example:
+
+```python
+# fixtures/conftest.py
+import os
+import pytest
+from dotenv import load_dotenv
+from playwright.sync_api import sync_playwright
+
+# Auto-load .env variables
+@pytest.fixture(scope="session", autouse=True)
+def load_env():
+    load_dotenv(dotenv_path=".env")
+
+# Provide the base URL
+@pytest.fixture(scope="session")
+def base_url():
+    return os.getenv("BASE_URL")
+
+# Custom browser fixture (overrides pytest-playwright's default)
+@pytest.fixture(scope="session")
+def browser():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        yield browser
+        browser.close()
+
+# Custom page fixture using the above browser
+@pytest.fixture(scope="function")
+def page(browser):
+    page = browser.new_page()
+    yield page
+    page.close()
+```
+
+* You can mix and match built-in (`page`, `browser`) and custom fixtures.
+* Name collisions override built-ins, so ensure fixture names align with your intended behavior.
+
+### Page Object Model
+
+Keep selectors and actions in classes under `pages/`:
+
 ### Page Object Model
 
 Keep selectors and actions in classes under `pages/`:
@@ -162,32 +208,80 @@ def test_visual(page, base_url):
 
 ---
 
-## 🌐 CI & GitHub Pages Deployment
+## 🌐 GitHub Pages Deployment
 
-In `.github/workflows/ci.yml`, after running `pytest`, add steps to:
+Host your pytest HTML reports on GitHub Pages with these steps:
 
-1. Copy HTML report into `docs/` for Pages:
+1. **Enable Pages**
 
-   ```yaml
-   - name: Publish HTML report
-     run: |
-       mkdir -p docs/reports/html
-       cp -R reports/html/* docs/reports/html/
-   ```
+   * In your GitHub repo, go to **Settings → Pages**.
+   * Under **Source**, select the branch (`main` or `gh-pages`) and folder (`/root` or `/docs`).
 
-2. Deploy via `peaceiris/actions-gh-pages`:
+2. **Publish Reports**
 
-   ```yaml
-   - name: Deploy to Pages
-     uses: peaceiris/actions-gh-pages@v3
-     with:
-       publish_dir: docs/reports/html
-       publish_branch: gh-pages
-   ```
+   * **Using `docs/` folder**: copy your HTML report into `docs/reports/html` so Pages serves it:
 
-Access live reports at `https://<username>.github.io/<repo>/reports/html/`.
+     ```yaml
+     - name: Publish pytest-html report
+       run: |
+         mkdir -p docs/reports/html
+         cp -R reports/html/* docs/reports/html/
+     ```
+   * **Direct deployment**: use `peaceiris/actions-gh-pages` to push from `reports/html`:
+
+     ```yaml
+     - name: Deploy Reports to GitHub Pages
+       uses: peaceiris/actions-gh-pages@v3
+       with:
+         publish_dir: docs/reports/html
+         publish_branch: gh-pages
+     ```
+
+3. **Access Reports**
+   Open at `https://<username>.github.io/<repo>/reports/html/` or `.../reports/html/index.html`
 
 ---
+
+## 🛠 Development Workflow
+
+Follow these steps to contribute and push changes without committing your virtual environment:
+
+1. **Activate your virtual environment**
+
+   ```bash
+   source .venv/bin/activate   # macOS/Linux
+   # .\venv\Scripts\activate  # Windows
+   ```
+
+2. **Create a feature branch**
+
+   ```bash
+   git checkout -b feature/your-description
+   ```
+
+3. **Make code changes**
+
+   * Add tests in `tests/`, POMs in `pages/`, or fixtures in `fixtures/`.
+
+4. **Stage and commit**
+
+   ```bash
+   git add .                  # excludes files in .gitignore (e.g. .venv/)
+   git commit -m \"feat: Your summary of changes\"
+   ```
+
+5. **Push your branch**
+
+   ```bash
+   git push -u origin feature/your-description
+   ```
+
+6. **Open a Pull Request**
+
+   * On GitHub, navigate to your fork and click **Compare & pull request**.
+   * Fill in the PR template and submit for review.
+
+> **Tip:** Ensure `.venv/`, `.pytest_cache/`, and other local artifacts are listed in `.gitignore` so they aren’t committed.
 
 ## 🤝 Contributing
 
