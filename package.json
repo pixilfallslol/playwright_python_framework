@@ -1,0 +1,26 @@
+{
+  "name": "playwright_python_framework",
+  "version": "1.0.0",
+  "description": "A modular, pytest-based Playwright framework for testing React applications (or any web apps) in Python. Built-in support for:",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pixilfallslol/playwright_python_framework.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pixilfallslol/playwright_python_framework/issues"
+  },
+  "homepage": "https://github.com/pixilfallslol/playwright_python_framework#readme",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
